@@ -3,7 +3,6 @@ import {
     PubSub
 } from 'graphql-yoga'
 
-import db from './db'
 import {
     resolvers,
     fragmentReplacements
@@ -18,7 +17,6 @@ const server = new GraphQLServer({
     fragmentReplacements,
     context(request) {
         return {
-            db,
             pubsub,
             prisma,
             request
