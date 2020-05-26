@@ -9,3 +9,4 @@ const prisma = new Prisma({
 })
 
 export { prisma as default}
+

@@ -22,7 +22,41 @@ const userTwo = {
     jwt: undefined
 }
 
+const postOne = {
+    input: {
+        title: 'Post 1',
+        body: 'Body 1',
+        published: true
+    },
+    post: undefined
+}
+
+const postTwo = {
+    input: {
+        title: 'Post 2',
+        body: '',
+        published: false
+    },
+    post: undefined
+}
+
+const commentOne = {
+    input: {
+        text: 'My comment'
+    },
+    comment: undefined
+}
+
+const commentTwo = {
+    input: {
+        text: 'Replied comment'
+    },
+    comment: undefined
+}
+
 const seedDatabase = async () => {
+    await prisma.mutation.deleteManyComments()
+    await prisma.mutation.deleteManyPosts()
     await prisma.mutation.deleteManyUsers()
 
     userOne.user = await prisma.mutation.createUser({
@@ -40,9 +74,62 @@ const seedDatabase = async () => {
     userTwo.jwt = jwt.sign({
         userId: userTwo.user.id
     }, process.env.JWT_SECRET)
+
+    postOne.post = await prisma.mutation.createPost({
+        data: {
+            ...postOne.input,
+            author: {
+                connect: {
+                    id: userOne.user.id
+                }
+            }
+        }
+    })
+    postTwo.post = await prisma.mutation.createPost({
+        data: {
+            ...postTwo.input,
+            author: {
+                connect: {
+                    id: userOne.user.id
+                }
+            }
+        }
+    })
+
+    commentOne.comment = await prisma.mutation.createComment({
+        data: {
+            ...commentOne.input,
+            author: {
+                connect: {
+                    id: userTwo.user.id
+                }
+            },
+            post: {
+                connect: {
+                    id: postOne.post.id
+                }
+            }
+        }
+    })
+
+    commentTwo.comment = await prisma.mutation.createComment({
+        data: {
+            ...commentTwo.input,
+            author: {
+                connect: {
+                    id: userOne.user.id
+                }
+            },
+            post: {
+                connect: {
+                    id: postOne.post.id
+                }
+            }
+        }
+    })
 }
 
 export {
     seedDatabase as
-    default, userOne, userTwo
+    default, userOne, userTwo, postOne, postTwo, commentOne, commentTwo
 }
