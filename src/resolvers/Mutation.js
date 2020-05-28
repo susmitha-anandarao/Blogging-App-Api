@@ -64,9 +64,9 @@ const Mutation = {
     }, info) {
         const userId = getUserId(request)
 
-        if (typeof args.data.password === 'string'){
+        if (typeof args.data.password === 'string') {
             args.data.password = await hashPassword(args.data.password)
-        }        
+        }
 
         return prisma.mutation.updateUser({
             data: args.data,
@@ -210,15 +210,24 @@ const Mutation = {
             }
         })
 
-        if (!commentExists) {
+        const myPost = await prisma.exists.Comment({
+            id,
+            post: {
+                author: {
+                    id: userId
+                }
+            }
+        })
+
+        if (myPost || commentExists) {
+            return prisma.mutation.deleteComment({
+                where: {
+                    id
+                }
+            }, info)
+        } else {
             throw new Error('Unable to delete comment')
         }
-
-        return prisma.mutation.deleteComment({
-            where: {
-                id
-            }
-        }, info)
     },
     async updateComment(parent, args, {
         prisma,

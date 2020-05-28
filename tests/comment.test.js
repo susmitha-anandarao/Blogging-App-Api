@@ -57,6 +57,25 @@ test('Should not delete other users comment', async () => {
     })).rejects.toThrow()
 })
 
+test('Should delete other users comment if my post', async () => {
+    const client = getClient(userOne.jwt)
+
+    const variables = {
+        id: commentOne.comment.id
+    }
+
+    await client.mutate({
+        mutation: deleteComment,
+        variables
+    })
+
+    const exists = await prisma.exists.Comment({
+        id: commentOne.comment.id
+    })
+
+    expect(exists).toBe(false)
+})
+
 test('Should require authentication to create a comment', async () => {
     const variables = {
         id: commentTwo.comment.id
