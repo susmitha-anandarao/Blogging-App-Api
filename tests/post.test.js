@@ -3,6 +3,7 @@ import 'cross-fetch/polyfill'
 import prisma from '../src/prisma'
 import seedDatabase, {
     userOne,
+    userTwo,
     postOne,
     postTwo
 } from './utils/seedDatabase'
@@ -10,6 +11,7 @@ import seedDatabase, {
 import getClient from './utils/getClient'
 import {
     queryPosts,
+    queryPost,
     myPosts,
     updatePost,
     createPost,
@@ -17,7 +19,7 @@ import {
     subscribeToPosts
 } from './utils/operations'
 
-jest.setTimeout(30000)
+jest.setTimeout(50000)
 
 const client = getClient()
 
@@ -25,7 +27,6 @@ beforeEach(seedDatabase)
 
 
 test('Should expose published posts', async () => {
-
     const response = await client.query({
         query: queryPosts
     })
@@ -35,7 +36,6 @@ test('Should expose published posts', async () => {
 })
 
 test('Should fetch users posts', async () => {
-
     const client = getClient(userOne.jwt)
 
     const {
@@ -71,6 +71,23 @@ test('Should be able to update own post', async () => {
 
     expect(data.updatePost.published).toBe(false)
     expect(exists).toBe(true)
+})
+
+test('Should not be able to update another users post', async () => {
+    const client = getClient(userTwo.jwt)
+
+    const variables = {
+        id: postOne.post.id,
+        data: {
+            published: false
+        }
+    }
+
+    await expect(client.mutate({
+            mutation: updatePost,
+            variables
+        })
+    ).rejects.toThrow()
 })
 
 test('Should be able to create own post', async () => {
@@ -120,8 +137,65 @@ test('Should be able to delete own post', async () => {
     expect(exists).toBe(false)
 })
 
-test('Should subscribe to post', async (done) => {
+test('Should not be able to delete another users post', async () => {
+    const client = getClient(userTwo.jwt)
 
+    const variables = {
+        id: postTwo.post.id
+    }
+
+    await expect(client.mutate({
+            mutation: deletePost,
+            variables
+        })
+    ).rejects.toThrow()
+})
+
+test('Should fetch published post by id ', async () => {
+    const client = getClient(userTwo.jwt)
+
+    const variables = {
+        id: postOne.post.id
+    }
+
+    const { data } = await client.query({
+        query: queryPost,
+        variables
+    })
+
+    expect(data.post.id).toBe(postOne.post.id)
+})
+
+test('Should fetch own post by id', async () => {
+    const client = getClient(userOne.jwt)
+
+    const variables = {
+        id: postTwo.post.id
+    }
+
+    const { data } = await client.query({
+        query: queryPost,
+        variables
+    })
+
+    expect(data.post.id).toBe(postTwo.post.id)
+})
+
+test('Should not fetch draft post from other user', async () => {
+    const client = getClient(userTwo.jwt)
+
+    const variables = {
+        id: postTwo.post.id
+    }
+
+    await expect(client.query({
+            query: queryPost,
+            variables
+        })
+    ).rejects.toThrow()
+})
+
+test('Should subscribe to post', async (done) => {
     const client = getClient(userOne.jwt)
 
     client.subscribe({
@@ -139,3 +213,4 @@ test('Should subscribe to post', async (done) => {
         }
     })
 })
+

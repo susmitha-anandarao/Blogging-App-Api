@@ -58,6 +58,17 @@ const queryPosts = gql `
     }
 `
 
+const queryPost = gql `
+    query($id: ID!) {
+        post(id: $id) {
+            id
+            title
+            body
+            published
+        }
+    }
+`
+
 const myPosts = gql `
     query {
         myPosts {
@@ -108,6 +119,38 @@ const deletePost = gql `
     }
 `
 
+const queryComments = gql `
+    query {
+        comments {
+            id
+            text
+        }
+    }
+`
+
+const createComment = gql `
+    mutation($data: CreateCommentInput!) {
+        createComment(
+            data: $data
+        ) {
+            id
+            text
+        }
+    }
+`
+
+const updateComment = gql `
+    mutation($id: ID!, $data: UpdateCommentInput!) {
+        updateComment(
+            id: $id,
+            data: $data
+        ) {
+            id
+            text
+        }
+    }
+`
+
 const deleteComment = gql `
     mutation($id: ID!) {
         deleteComment(
@@ -147,11 +190,15 @@ export {
     login,
     queryUsers,
     queryProfile,
+    queryPost,
     queryPosts,
     myPosts,
     updatePost,
     createPost,
     deletePost,
+    queryComments,
+    createComment,
+    updateComment,
     deleteComment,
     subscribeToComments,
     subscribeToPosts
